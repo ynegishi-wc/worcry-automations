@@ -90,5 +90,18 @@ jobs:
       - name: Deploy to Netlify
         run: |
           npm install -g netlify-cli
-          netlify deploy --prod --dir=public --site=${{ secrets.NETLIFY_SITE_ID_AOHARU }} --auth=${{ secrets.NETLIFY_TOKEN }}
-          netlify deploy --prod --dir=public --site=${{ secrets.NETLIFY_SITE_ID_MARKE }} --auth=${{ secrets.NETLIFY_TOKEN }}
+
+          # AOHARUダッシュボード（週次ステップ率）をデプロイ
+          netlify deploy --prod \
+            --dir=public \
+            --filter dashboard_AOHARU_週次ステップ率.html \
+            --site=${{ secrets.NETLIFY_SITE_ID_AOHARU }} \
+            --auth=${{ secrets.NETLIFY_TOKEN }}
+
+          # マーケ数値ダッシュボードをデプロイ（index.htmlとして）
+          mkdir -p /tmp/marke-deploy
+          cp public/dashboard_AOHARU_マーケ数値.html /tmp/marke-deploy/index.html
+          netlify deploy --prod \
+            --dir=/tmp/marke-deploy \
+            --site=${{ secrets.NETLIFY_SITE_ID_MARKE }} \
+            --auth=${{ secrets.NETLIFY_TOKEN }}
