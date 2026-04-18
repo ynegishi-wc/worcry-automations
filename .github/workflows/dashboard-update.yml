@@ -56,7 +56,8 @@ jobs:
         run: |
           TODAY=$(TZ=Asia/Tokyo date '+%Y年%-m月%-d日')
           sed -i "s/最終更新: .*（スプレッドシート連携）/最終更新: ${TODAY}（スプレッドシート連携）/" public/dashboard_AOHARU_週次ステップ率.html
-          echo "最終更新日を ${TODAY} に更新しました"
+          cp public/dashboard_AOHARU_週次ステップ率.html public/index.html
+          echo "最終更新日を ${TODAY} に更新しindex.htmlに同期しました"
 
       - name: マーケ数値ダッシュボード更新
         if: >
