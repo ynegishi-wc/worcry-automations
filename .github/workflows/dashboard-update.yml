@@ -1,0 +1,97 @@
+# ==============================================================
+# AOHARUインターン ダッシュボード自動更新 — GitHub Actions
+#
+# 毎週月曜 09:00 JST (日曜 24:00 UTC) に実行
+# 手動実行も可能
+#
+# 処理:
+#   1. Google Sheetsから最新KPIデータ取得
+#   2. public/dashboard_AOHARU_週次ステップ率.html を更新
+#   3. public/dashboard_AOHARU_マーケ数値.html を更新
+#   4. 変更をコミット＆プッシュ
+#   5. Netlify CLI で public/ をデプロイ
+# ==============================================================
+
+name: ダッシュボード自動更新（週次）
+
+on:
+  schedule:
+    # 毎週月曜 09:00 JST = 日曜 24:00 UTC
+    - cron: '0 0 * * 1'
+
+  workflow_dispatch:
+    inputs:
+      target:
+        description: '更新対象'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+          - both
+          - step-rate
+          - marke
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: チェックアウト
+        uses: actions/checkout@v4
+
+      - name: Python セットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 週次ステップ率ダッシュボード更新
+        if: >
+          github.event_name == 'schedule' ||
+          github.event.inputs.target == 'both' ||
+          github.event.inputs.target == 'step-rate'
+        env:
+          DASHBOARD_PATH: public/dashboard_AOHARU_週次ステップ率.html
+        run: |
+          python -c "
+          import sys, os
+          sys.path.insert(0, 'scripts')
+          import update_dashboard as ud
+          ud.DASHBOARD = os.environ['DASHBOARD_PATH']
+          ud.main()
+          "
+
+      - name: マーケ数値ダッシュボード更新
+        if: >
+          github.event_name == 'schedule' ||
+          github.event.inputs.target == 'both' ||
+          github.event.inputs.target == 'marke'
+        env:
+          DASHBOARD_PATH: public/dashboard_AOHARU_マーケ数値.html
+        run: |
+          python -c "
+          import sys, os
+          sys.path.insert(0, 'scripts')
+          import aggregate_marke as am
+          am.DASHBOARD_HTML = os.environ['DASHBOARD_PATH']
+          am.main()
+          "
+
+      - name: 変更をコミット＆プッシュ
+        run: |
+          if git diff --quiet; then
+            echo "変更なし"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add public/dashboard_AOHARU_*.html
+            DATE=$(TZ=Asia/Tokyo date +"%Y-%m-%d")
+            git commit -m "chore: update dashboards ($DATE) [skip ci]"
+            git push
+          fi
+
+      - name: Deploy to Netlify
+        run: |
+          npm install -g netlify-cli
+          netlify deploy --prod --dir=public --site=${{ secrets.NETLIFY_SITE_ID_AOHARU }} --auth=${{ secrets.NETLIFY_TOKEN }}
+          netlify deploy --prod --dir=public --site=${{ secrets.NETLIFY_SITE_ID_MARKE }} --auth=${{ secrets.NETLIFY_TOKEN }}
