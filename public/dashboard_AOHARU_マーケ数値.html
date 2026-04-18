@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AOHARUインターン マーケ数値ダッシュボード</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;background:#f0f4f8;color:#4D5156;font-size:13px;}
+
+  .header{
+    background:linear-gradient(135deg,#1e3a5f 0%,#2d6a9f 60%,#46A7E1 100%);
+    color:white;padding:18px 32px;
+    display:flex;align-items:center;justify-content:space-between;
+    box-shadow:0 3px 16px rgba(30,58,95,0.35);
+  }
+  .header-left{display:flex;align-items:center;gap:14px;}
+  .logo{width:42px;height:42px;background:#F28708;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;color:white;box-shadow:0 2px 8px rgba(242,135,8,0.5);}
+  .header h1{font-size:18px;font-weight:700;letter-spacing:0.02em;}
+  .header .sub{font-size:11px;opacity:0.8;margin-top:3px;}
+  .header-right{text-align:right;font-size:11px;opacity:0.85;}
+
+  .wrap{max-width:1440px;margin:0 auto;padding:20px 28px 32px;}
+
+  .sec{font-size:11px;font-weight:700;color:#46A7E1;text-transform:uppercase;letter-spacing:.1em;
+    margin:22px 0 10px;display:flex;align-items:center;gap:8px;}
+  .sec::before{content:'';width:4px;height:14px;background:#F28708;border-radius:2px;flex-shrink:0;}
+
+  /* KPI CARDS */
+  .kpi-row{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:6px;}
+  @media (max-width:1200px){.kpi-row{grid-template-columns:repeat(4,1fr);}}
+  .kpi{background:white;border-radius:10px;padding:14px 16px;box-shadow:0 1px 6px rgba(0,0,0,.07);position:relative;overflow:hidden;}
+  .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--c,#46A7E1);}
+  .kpi-lbl{font-size:10px;color:#9ca3af;font-weight:600;letter-spacing:.04em;margin-bottom:4px;}
+  .kpi-val{font-size:24px;font-weight:800;color:#1e3a5f;line-height:1.1;}
+  .kpi-unit{font-size:12px;font-weight:600;color:#9ca3af;}
+  .kpi-rate{font-size:10px;margin-top:6px;display:flex;flex-direction:column;gap:3px;}
+  .kpi-step{font-size:9px;color:#9ca3af;font-weight:600;letter-spacing:.02em;}
+  .badge{display:inline-flex;padding:2px 7px;border-radius:12px;font-size:10px;font-weight:700;}
+  .b-blue{background:#dbeafe;color:#1d4ed8;}
+  .b-green{background:#dcfce7;color:#15803d;}
+  .b-orange{background:#fff7ed;color:#c2410c;}
+  .b-gray{background:#f3f4f6;color:#6b7280;}
+  .b-red{background:#fee2e2;color:#dc2626;}
+
+  /* QUARTER CARDS */
+  .q-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;}
+  .q-card{background:white;border-radius:12px;padding:16px 20px;box-shadow:0 1px 6px rgba(0,0,0,.07);border-top:4px solid var(--qc,#46A7E1);}
+  .q-title{font-size:12px;font-weight:800;color:#1e3a5f;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+  .q-label{font-size:10px;font-weight:700;color:white;background:var(--qc,#46A7E1);padding:2px 8px;border-radius:10px;}
+  .q-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+  .q-item{text-align:center;}
+  .q-item-lbl{font-size:8px;color:#9ca3af;font-weight:600;}
+  .q-item-val{font-size:14px;font-weight:800;color:#1e3a5f;}
+  .q-item-rate{font-size:9px;font-weight:700;margin-top:1px;}
+
+  /* FUNNEL */
+  .funnel-wrap{background:white;border-radius:12px;padding:22px 24px;box-shadow:0 1px 6px rgba(0,0,0,.07);margin-bottom:14px;}
+  .funnel-hd{font-size:13px;font-weight:700;color:#1e3a5f;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;}
+  .funnel{display:flex;align-items:center;gap:0;}
+  .fstep{flex:1;display:flex;flex-direction:column;align-items:center;}
+  .fbox{width:100%;border-radius:9px;color:white;text-align:center;padding:13px 6px;}
+  .fbox-lbl{font-size:10px;font-weight:600;opacity:.9;margin-bottom:3px;}
+  .fbox-val{font-size:22px;font-weight:800;line-height:1;}
+  .fbox-unit{font-size:11px;opacity:.85;margin-top:2px;}
+  .farrow{width:44px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;}
+  .farrow-rate{font-size:12px;font-weight:800;padding:3px 6px;border-radius:12px;white-space:nowrap;}
+  .farrow-icon{color:#c0ccd8;font-size:18px;}
+  .farrow-tgt{font-size:9px;color:#9ca3af;white-space:nowrap;}
+
+  /* TABS */
+  .tab-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  .tab{padding:7px 16px;border-radius:20px;border:none;background:white;color:#6b7280;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.08);transition:.15s;}
+  .tab.on{background:#46A7E1;color:white;}
+  .tab:hover:not(.on){background:#e0f2fe;color:#0369a1;}
+
+  /* CHARTS */
+  .chart-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:14px;margin-bottom:14px;}
+  .chart-card{background:white;border-radius:12px;padding:18px 20px;box-shadow:0 1px 6px rgba(0,0,0,.07);}
+  .chart-hd{font-size:12px;font-weight:700;color:#1e3a5f;margin-bottom:14px;}
+  .chart-wrap{position:relative;height:210px;}
+
+  /* ROUTE TABLE */
+  .tbl-card{background:white;border-radius:12px;padding:18px 20px;box-shadow:0 1px 6px rgba(0,0,0,.07);overflow-x:auto;margin-bottom:14px;}
+  table{width:100%;border-collapse:collapse;font-size:11px;}
+  th{background:#1e3a5f;color:white;padding:9px 10px;text-align:center;font-weight:700;white-space:nowrap;}
+  th.th2{background:#2d6a9f;font-size:10px;}
+  th.th-o{background:#d97706;}
+  th.th-g{background:#047857;}
+  td{padding:8px 10px;text-align:center;border-bottom:1px solid #f3f4f6;white-space:nowrap;}
+  td.lbl{text-align:left;font-weight:600;color:#374151;}
+  tr:nth-child(even) td{background:#f9fafb;}
+  tr.ttl td{background:#dbeafe!important;font-weight:700;color:#1d4ed8;}
+  .ok{color:#15803d;font-weight:700;}
+  .ng{color:#dc2626;font-weight:700;}
+  .na{color:#9ca3af;}
+
+  /* CROSS STEP */
+  .cross-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:6px;}
+
+  .footer{text-align:center;padding:16px;font-size:10px;color:#9ca3af;}
+
+  @media (max-width:1200px){
+    .q-row{grid-template-columns:1fr 1fr;}
+    .cross-grid{grid-template-columns:1fr 1fr;}
+    .chart-grid{grid-template-columns:1fr;}
+  }
+
+  /* ===== タブレット (〜768px) ===== */
+  @media (max-width:768px){
+    .header{padding:14px 16px;flex-direction:column;align-items:flex-start;gap:8px;}
+    .header h1{font-size:15px;line-height:1.3;}
+    .header .sub{font-size:9px;}
+    .header-right{text-align:left;font-size:10px;}
+    .wrap{padding:12px 12px 24px;}
+    .kpi-row{grid-template-columns:repeat(4,1fr);gap:8px;}
+    .kpi{padding:10px 12px;}
+    .kpi-val{font-size:20px;}
+    .q-row{grid-template-columns:1fr;}
+    .q-grid{gap:2px;}
+    .funnel-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    .funnel-wrap::after{content:'← スクロール →';display:block;text-align:center;font-size:9px;color:#9ca3af;padding-top:6px;}
+    .funnel{min-width:640px;}
+    .cross-grid{grid-template-columns:1fr 1fr;}
+    .chart-grid{grid-template-columns:1fr;}
+    .chart-wrap{height:180px;}
+    .tab{padding:6px 12px;font-size:11px;}
+    .sec{margin:14px 0 8px;}
+    .tbl-card{padding:14px 12px;}
+  }
+
+  /* ===== スマホ (〜480px) ===== */
+  @media (max-width:480px){
+    .header{padding:12px 14px;gap:6px;}
+    .header h1{font-size:13px;}
+    .logo{width:34px;height:34px;font-size:18px;}
+    .header-right span:first-child{font-size:12px !important;}
+    .wrap{padding:10px 10px 20px;}
+    .sec{font-size:10px;margin:12px 0 7px;}
+
+    /* KPIカード: 2列 */
+    .kpi-row{grid-template-columns:repeat(2,1fr);gap:8px;}
+    .kpi{padding:10px 10px;}
+    .kpi-val{font-size:19px;}
+    .kpi-lbl{font-size:9px;}
+
+    /* 四半期サマリー: 7列→4列 */
+    .q-grid{grid-template-columns:repeat(4,1fr) !important;}
+    .q-item-lbl{font-size:7px;}
+    .q-item-val{font-size:13px;}
+    .q-item-rate{font-size:8px;}
+    .q-card{padding:12px 14px;}
+    .q-title{font-size:11px;}
+
+    /* ファネル */
+    .funnel{min-width:560px;}
+    .farrow{width:32px;}
+    .farrow-rate{font-size:10px;padding:2px 4px;}
+    .fbox-val{font-size:18px;}
+    .fbox{padding:10px 4px;}
+
+    /* クロスステップ */
+    .cross-grid{grid-template-columns:1fr;}
+
+    /* チャート */
+    .chart-wrap{height:155px;}
+    .chart-card{padding:12px 14px;}
+    .chart-hd{font-size:11px;}
+
+    /* テーブル */
+    .tbl-card{padding:10px 8px;}
+    table{font-size:10px;}
+    th{padding:7px 6px;font-size:9px;}
+    td{padding:6px 6px;}
+
+    /* タブ */
+    .tab{padding:5px 10px;font-size:10px;}
+    .tab-bar{gap:5px;}
+
+    /* クロスカード内 月別グリッド */
+    .month-grid-6{grid-template-columns:repeat(3,1fr) !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo">W</div>
+    <div>
+      <h1>AOHARUインターン — マーケ数値ダッシュボード</h1>
+      <div class="sub">"はたらく"に、青春を。 &nbsp;｜&nbsp; LINE登録 → PD → 面談予約 → 面談実施 → 応募意思 → セット → 決定</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span style="font-size:15px;font-weight:700;display:block;">最終更新: 2026年04月12日 09:00</span>
+    <span style="font-size:10px;background:rgba(255,255,255,0.15);padding:2px 8px;border-radius:10px;margin-top:4px;display:inline-block;">データソース: マーケ数値シート</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ===== KPI サマリー（累計） ===== -->
+  <div class="sec">累計パフォーマンス（2025年9月〜2026年4月）</div>
+  <div class="kpi-row">
+    <div class="kpi" style="--c:#46A7E1">
+      <div class="kpi-lbl">LINE登録</div>
+      <div class="kpi-val">2,191<span class="kpi-unit"> 名</span></div>
+      <div class="kpi-rate">9月〜4月累計</div>
+    </div>
+    <div class="kpi" style="--c:#2d6a9f">
+      <div class="kpi-lbl">PD</div>
+      <div class="kpi-val">1,622<span class="kpi-unit"> 名</span></div>
+      <div class="kpi-rate">
+        <span class="kpi-step">LINE→PD</span>
+        <span class="badge b-green">74% ▲目標60%</span>
+      </div>
+    </div>
+    <div class="kpi" style="--c:#F28708">
+      <div class="kpi-lbl">面談予約</div>
+      <div class="kpi-val">210<span class="kpi-unit"> 名</span></div>
+      <div class="kpi-rate">
+        <span class="kpi-step">PD→面談予約</span>
+        <span class="badge b-red">13% ▼目標25%</span>
+      </div>
+    </div>
+    <div class="kpi" style="--c:#f09a30">
+      <div class="kpi-lbl">面談実施</div>
+      <div class="kpi-val">136<span class="kpi-unit"> 名</span></div>
+      <div class="kpi-rate">
+        <span class="kpi-step">予約→実施</span>
+        <span class="badge b-orange">65% ▼目標70%</span>
+      </div>
+    </div>
+    <div class="kpi" style="--c:#8b5cf6">
+      <div class="kpi-lbl">応募意思取得</div>
+      <div class="kpi-val">—<span class="kpi-unit"></span></div>
+      <div class="kpi-rate">
+        <span class="kpi-step">実施→応募意思</span>
+        <span class="badge b-gray">データなし</span>
+      </div>
+    </div>
+    <div class="kpi" style="--c:#34b97b">
+      <div class="kpi-lbl">Uセット</div>
+      <div class="kpi-val">24<span class="kpi-unit"> 名</span></div>
+      <div class="kpi-rate">
+        <span class="kpi-step">実施→セット</span>
+        <span class="badge b-red">18% ▼目標65%</span>
+      </div>
+    </div>
+    <div class="kpi" style="--c:#059669">
+      <div class="kpi-lbl">決定</div>
+      <div class="kpi-val">18<span class="kpi-unit"> 名</span></div>
+      <div class="kpi-rate">
+        <span class="kpi-step">セット→決定</span>
+        <span class="badge b-green">75% ▲目標35%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 四半期サマリー ===== -->
+  <div class="sec" style="margin-top:18px;">四半期サマリー</div>
+  <div class="q-row">
+
+    <!-- 4Q -->
+    <div class="q-card" style="--qc:#8b5cf6;">
+      <div class="q-title">
+        <span>4Q（2025年10月〜11月）</span>
+        <span class="q-label" style="--qc:#8b5cf6;">4Q</span>
+      </div>
+      <div class="q-grid">
+        <div class="q-item"><div class="q-item-lbl">LINE</div><div class="q-item-val">963</div><div class="q-item-rate" style="color:#9ca3af;">—</div></div>
+        <div class="q-item"><div class="q-item-lbl">PD</div><div class="q-item-val">843</div><div class="q-item-rate" style="color:#15803d;">88%</div></div>
+        <div class="q-item"><div class="q-item-lbl">予約</div><div class="q-item-val">38</div><div class="q-item-rate" style="color:#dc2626;">5%</div></div>
+        <div class="q-item"><div class="q-item-lbl">実施</div><div class="q-item-val">24</div><div class="q-item-rate" style="color:#dc2626;">63%</div></div>
+        <div class="q-item"><div class="q-item-lbl">応募</div><div class="q-item-val">—</div><div class="q-item-rate" style="color:#9ca3af;">—</div></div>
+        <div class="q-item"><div class="q-item-lbl">セット</div><div class="q-item-val">4</div><div class="q-item-rate" style="color:#9ca3af;">—</div></div>
+        <div class="q-item"><div class="q-item-lbl">決定</div><div class="q-item-val">4</div><div class="q-item-rate" style="color:#15803d;">100%</div></div>
+      </div>
+    </div>
+
+    <!-- 1Q -->
+    <div class="q-card" style="--qc:#46A7E1;">
+      <div class="q-title">
+        <span>1Q（2025年12月〜2026年2月）</span>
+        <span class="q-label" style="--qc:#46A7E1;">1Q</span>
+      </div>
+      <div class="q-grid">
+        <div class="q-item"><div class="q-item-lbl">LINE</div><div class="q-item-val">598</div><div class="q-item-rate" style="color:#9ca3af;">—</div></div>
+        <div class="q-item"><div class="q-item-lbl">PD</div><div class="q-item-val">386</div><div class="q-item-rate" style="color:#15803d;">65%</div></div>
+        <div class="q-item"><div class="q-item-lbl">予約</div><div class="q-item-val">105</div><div class="q-item-rate" style="color:#15803d;">27%</div></div>
+        <div class="q-item"><div class="q-item-lbl">実施</div><div class="q-item-val">69</div><div class="q-item-rate" style="color:#dc2626;">66%</div></div>
+        <div class="q-item"><div class="q-item-lbl">応募</div><div class="q-item-val">—</div><div class="q-item-rate" style="color:#9ca3af;">—</div></div>
+        <div class="q-item"><div class="q-item-lbl">セット</div><div class="q-item-val">16</div><div class="q-item-rate" style="color:#9ca3af;">—</div></div>
+        <div class="q-item"><div class="q-item-lbl">決定</div><div class="q-item-val">13</div><div class="q-item-rate" style="color:#15803d;">81%</div></div>
+      </div>
+    </div>
+
+    <!-- 2Q -->
+    <div class="q-card" style="--qc:#F28708;">
+      <div class="q-title">
+        <span>2Q（2026年3月〜4月 ※期中）</span>
+        <span class="q-label" style="--qc:#F28708;">2Q</span>
+      </div>
+      <div class="q-grid">
+        <div class="q-item"><div class="q-item-lbl">LINE</div><div class="q-item-val">626</div><div class="q-item-rate" style="color:#9ca3af;">—</div></div>
+        <div class="q-item"><div class="q-item-lbl">PD</div><div class="q-item-val">392</div><div class="q-item-rate" style="color:#15803d;">63%</div></div>
+        <div class="q-item"><div class="q-item-lbl">予約</div><div class="q-item-val">67</div><div class="q-item-rate" style="color:#dc2626;">17%</div></div>
+        <div class="q-item"><div class="q-item-lbl">実施</div><div class="q-item-val">43</div><div class="q-item-rate" style="color:#dc2626;">64%</div></div>
+        <div class="q-item"><div class="q-item-lbl">応募</div><div class="q-item-val">—</div><div class="q-item-rate" style="color:#9ca3af;">—</div></div>
+        <div class="q-item"><div class="q-item-lbl">セット</div><div class="q-item-val">4</div><div class="q-item-rate" style="color:#9ca3af;">—</div></div>
+        <div class="q-item"><div class="q-item-lbl">決定</div><div class="q-item-val">1</div><div class="q-item-rate" style="color:#dc2626;">25%</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== クロスステップ率 ===== -->
+  <div class="sec" style="margin-top:4px;">重要クロスステップ率（累計）</div>
+  <div class="cross-grid">
+
+    <!-- LINE→面談実施 -->
+    <div style="background:white;border-radius:12px;padding:18px 20px;box-shadow:0 1px 6px rgba(0,0,0,.07);border-left:5px solid #46A7E1;">
+      <div style="font-size:11px;color:#9ca3af;font-weight:700;letter-spacing:.06em;margin-bottom:8px;">LINE → 面談実施（実施/LINE）</div>
+      <div style="display:flex;align-items:flex-end;gap:12px;margin-bottom:12px;">
+        <div>
+          <div style="font-size:10px;color:#9ca3af;">累計実績</div>
+          <div style="font-size:36px;font-weight:800;color:#1e3a5f;line-height:1;">6<span style="font-size:16px;">%</span></div>
+        </div>
+        <div style="font-size:13px;color:#6b7280;">vs 目標 <strong style="color:#F28708;">11%</strong></div>
+        <div style="margin-left:auto;"><span style="background:#fee2e2;color:#dc2626;font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;">▼ -5pt</span></div>
+      </div>
+      <div class="month-grid-6" style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;">
+        <div style="text-align:center;background:#f0f4f8;border-radius:6px;padding:5px 3px;"><div style="font-size:8px;color:#9ca3af;">10月</div><div style="font-size:13px;font-weight:700;color:#dc2626;">1%</div></div>
+        <div style="text-align:center;background:#f0f4f8;border-radius:6px;padding:5px 3px;"><div style="font-size:8px;color:#9ca3af;">11月</div><div style="font-size:13px;font-weight:700;color:#dc2626;">9%</div></div>
+        <div style="text-align:center;background:#f0f4f8;border-radius:6px;padding:5px 3px;"><div style="font-size:8px;color:#9ca3af;">12月</div><div style="font-size:13px;font-weight:700;color:#15803d;">15%</div></div>
+        <div style="text-align:center;background:#f0f4f8;border-radius:6px;padding:5px 3px;"><div style="font-size:8px;color:#9ca3af;">1月</div><div style="font-size:13px;font-weight:700;color:#15803d;">13%</div></div>
+        <div style="text-align:center;background:#f0f4f8;border-radius:6px;padding:5px 3px;"><div style="font-size:8px;color:#9ca3af;">2月</div><div style="font-size:13px;font-weight:700;color:#dc2626;">9%</div></div>
+        <div style="text-align:center;background:#f0f4f8;border-radius:6px;padding:5px 3px;"><div style="font-size:8px;color:#9ca3af;">3月</div><div style="font-size:13px;font-weight:700;color:#dc2626;">8%</div></div>
+      </div>
+    </div>
+
+    <!-- LINE→決定 -->
+    <div style="background:white;border-radius:12px;padding:18px 20px;box-shadow:0 1px 6px rgba(0,0,0,.07);border-left:5px solid #1d4ed8;">
+      <div style="font-size:11px;color:#9ca3af;font-weight:700;letter-spacing:.06em;margin-bottom:8px;">LINE → 決定（決定/LINE）</div>
+      <div style="display:flex;align-items:flex-end;gap:12px;margin-bottom:12px;">
+        <div>
+          <div style="font-size:10px;color:#9ca3af;">累計実績</div>
+          <div style="font-size:36px;font-weight:800;color:#1e3a5f;line-height:1;">1<span style="font-size:16px;">%</span></div>
+        </div>
+        <div style="font-size:13px;color:#6b7280;">vs 目標 <strong style="color:#F28708;">2%</strong></div>
+        <div style="margin-left:auto;"><span style="background:#fee2e2;color:#dc2626;font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;">▼ -1pt</span></div>
+      </div>
+      <div class="month-grid-6" style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;">
+        <div style="text-align:center;background:#f0f4f8;border-radius:6px;padding:5px 3px;"><div style="font-size:8px;color:#9ca3af;">10月</div><div style="font-size:13px;font-weight:700;color:#9ca3af;">0%</div></div>
+        <div style="text-align:center;background:#f0f4f8;border-radius:6px;padding:5px 3px;"><div style="font-size:8px;color:#9ca3af;">11月</div><div style="font-size:13px;font-weight:700;color:#dc2626;">1%</div></div>
+        <div style="text-align:center;background:#f0f4f8;border-radius:6px;padding:5px 3px;"><div style="font-size:8px;color:#9ca3af;">12月</div><div style="font-size:13px;font-weight:700;color:#15803d;">3%</div></div>
+        <div style="text-align:center;background:#f0f4f8;border-radius:6px;padding:5px 3px;"><div style="font-size:8px;color:#9ca3af;">1月</div><div style="font-size:13px;font-weight:700;color:#15803d;">3%</div></div>
+        <div style="text-align:center;background:#f0f4f8;border-radius:6px;padding:5px 3px;"><div style="font-size:8px;color:#9ca3af;">2月</div><div style="font-size:13px;font-weight:700;color:#dc2626;">1%</div></div>
+        <div style="text-align:center;background:#f0f4f8;border-radius:6px;padding:5px 3px;"><div style="font-size:8px;color:#9ca3af;">3月</div><div style="font-size:13px;font-weight:700;color:#9ca3af;">0%*</div></div>
+      </div>
+      <div style="font-size:10px;color:#9ca3af;margin-top:6px;">* 3月は期中のため参考値</div>
+    </div>
+
+    <!-- 面談実施→Uセット -->
+    <div style="background:white;border-radius:12px;padding:18px 20px;box-shadow:0 1px 6px rgba(0,0,0,.07);border-left:5px solid #7c3aed;">
+      <div style="font-size:11px;color:#9ca3af;font-weight:700;letter-spacing:.06em;margin-bottom:8px;">面談実施 → Uセット（セット/実施）</div>
+      <div style="display:flex;align-items:flex-end;gap:12px;margin-bottom:12px;">
+        <div>
+          <div style="font-size:10px;color:#9ca3af;">累計実績</div>
+          <div style="font-size:36px;font-weight:800;color:#1e3a5f;line-height:1;">18<span style="font-size:16px;">%</span></div>
+        </div>
+        <div style="font-size:13px;color:#6b7280;">vs 目標 <strong style="color:#F28708;">65%</strong></div>
+        <div style="margin-left:auto;"><span style="background:#fee2e2;color:#dc2626;font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;">▼ -47pt</span></div>
+      </div>
+      <div class="month-grid-6" style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;">
+        <div style="text-align:center;background:#f0f4f8;border-radius:6px;padding:5px 3px;"><div style="font-size:8px;color:#9ca3af;">10月</div><div style="font-size:13px;font-weight:700;color:#dc2626;">20%</div></div>
+        <div style="text-align:center;background:#f0f4f8;border-radius:6px;padding:5px 3px;"><div style="font-size:8px;color:#9ca3af;">11月</div><div style="font-size:13px;font-weight:700;color:#dc2626;">16%</div></div>
+        <div style="text-align:center;background:#f0f4f8;border-radius:6px;padding:5px 3px;"><div style="font-size:8px;color:#9ca3af;">12月</div><div style="font-size:13px;font-weight:700;color:#dc2626;">17%</div></div>
+        <div style="text-align:center;background:#f0f4f8;border-radius:6px;padding:5px 3px;"><div style="font-size:8px;color:#9ca3af;">1月</div><div style="font-size:13px;font-weight:700;color:#dc2626;">29%</div></div>
+        <div style="text-align:center;background:#f0f4f8;border-radius:6px;padding:5px 3px;"><div style="font-size:8px;color:#9ca3af;">2月</div><div style="font-size:13px;font-weight:700;color:#dc2626;">25%</div></div>
+        <div style="text-align:center;background:#f0f4f8;border-radius:6px;padding:5px 3px;"><div style="font-size:8px;color:#9ca3af;">3月</div><div style="font-size:13px;font-weight:700;color:#dc2626;">10%</div></div>
+      </div>
+    </div>
+
+    <!-- 面談実施→決定 -->
+    <div style="background:white;border-radius:12px;padding:18px 20px;box-shadow:0 1px 6px rgba(0,0,0,.07);border-left:5px solid #059669;">
+      <div style="font-size:11px;color:#9ca3af;font-weight:700;letter-spacing:.06em;margin-bottom:8px;">面談実施 → 決定（決定/実施）</div>
+      <div style="display:flex;align-items:flex-end;gap:12px;margin-bottom:12px;">
+        <div>
+          <div style="font-size:10px;color:#9ca3af;">累計実績</div>
+          <div style="font-size:36px;font-weight:800;color:#1e3a5f;line-height:1;">13<span style="font-size:16px;">%</span></div>
+        </div>
+        <div style="font-size:13px;color:#6b7280;">vs 目標 <strong style="color:#F28708;">20%</strong></div>
+        <div style="margin-left:auto;"><span style="background:#fee2e2;color:#dc2626;font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;">▼ -7pt</span></div>
+      </div>
+      <div class="month-grid-6" style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;">
+        <div style="text-align:center;background:#f0f4f8;border-radius:6px;padding:5px 3px;"><div style="font-size:8px;color:#9ca3af;">10月</div><div style="font-size:13px;font-weight:700;color:#15803d;">20%</div></div>
+        <div style="text-align:center;background:#f0f4f8;border-radius:6px;padding:5px 3px;"><div style="font-size:8px;color:#9ca3af;">11月</div><div style="font-size:13px;font-weight:700;color:#dc2626;">16%</div></div>
+        <div style="text-align:center;background:#f0f4f8;border-radius:6px;padding:5px 3px;"><div style="font-size:8px;color:#9ca3af;">12月</div><div style="font-size:13px;font-weight:700;color:#dc2626;">17%</div></div>
+        <div style="text-align:center;background:#f0f4f8;border-radius:6px;padding:5px 3px;"><div style="font-size:8px;color:#9ca3af;">1月</div><div style="font-size:13px;font-weight:700;color:#15803d;">24%</div></div>
+        <div style="text-align:center;background:#f0f4f8;border-radius:6px;padding:5px 3px;"><div style="font-size:8px;color:#9ca3af;">2月</div><div style="font-size:13px;font-weight:700;color:#dc2626;">17%</div></div>
+        <div style="text-align:center;background:#f0f4f8;border-radius:6px;padding:5px 3px;"><div style="font-size:8px;color:#9ca3af;">3月</div><div style="font-size:13px;font-weight:700;color:#dc2626;">2%</div></div>
+      </div>
+      <div style="font-size:10px;color:#9ca3af;margin-top:6px;">* 3月・4月は期中のため参考値</div>
+    </div>
+
+  </div>
+
+  <!-- ===== ファネル ===== -->
+  <div class="sec" style="margin-top:20px;">ステップファネル（月別）</div>
+  <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap;">
+    <span style="font-size:11px;color:#6b7280;font-weight:600;">期間：</span>
+    <button class="tab on" onclick="setTab('all',this)">10月〜3月合計</button>
+    <button class="tab" onclick="setTab('m10',this)">10月</button>
+    <button class="tab" onclick="setTab('m11',this)">11月</button>
+    <button class="tab" onclick="setTab('m12',this)">12月</button>
+    <button class="tab" onclick="setTab('m1',this)">1月</button>
+    <button class="tab" onclick="setTab('m2',this)">2月</button>
+    <button class="tab" onclick="setTab('m3',this)">3月</button>
+  </div>
+
+  <div class="funnel-wrap">
+    <div class="funnel-hd">
+      <span id="funnel-title">📊 全ステップ変換率（10月〜3月合計）</span>
+    </div>
+    <div class="funnel" id="funnel"></div>
+  </div>
+
+  <!-- ===== 月次チャート ===== -->
+  <div class="sec">月次トレンド</div>
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="chart-hd">📈 月次数量（左軸: LINE・PD　右軸: 面談予約・面談実施・セット・決定）</div>
+      <div class="chart-wrap"><canvas id="ch1"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-hd">🎯 月次ステップ率推移</div>
+      <div class="chart-wrap"><canvas id="ch2"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ===== 月別サマリーテーブル ===== -->
+  <div class="sec">月別サマリーテーブル</div>
+  <div class="tbl-card">
+    <table>
+      <thead>
+        <tr>
+          <th style="text-align:left;padding-left:12px;">月</th>
+          <th>LINE</th>
+          <th>PD</th>
+          <th class="th-o">面談予約</th>
+          <th class="th-o">面談実施</th>
+          <th>応募意思</th>
+          <th class="th-g">Uセット</th>
+          <th class="th-g">決定</th>
+          <th style="background:#5b21b6;">LINE→PD</th>
+          <th style="background:#5b21b6;">PD→予約</th>
+          <th style="background:#5b21b6;">予約→実施</th>
+          <th style="background:#5b21b6;">実施→応募</th>
+          <th style="background:#5b21b6;">応募→セット</th>
+          <th style="background:#5b21b6;">セット→決定</th>
+        </tr>
+        <tr>
+          <th class="th2">目標</th>
+          <th class="th2">—</th>
+          <th class="th2">—</th>
+          <th class="th2">—</th>
+          <th class="th2">—</th>
+          <th class="th2">—</th>
+          <th class="th2">—</th>
+          <th class="th2">—</th>
+          <th class="th2">60%</th>
+          <th class="th2">25%</th>
+          <th class="th2">70%</th>
+          <th class="th2">65%</th>
+          <th class="th2">90%</th>
+          <th class="th2">35%</th>
+        </tr>
+      </thead>
+      <tbody id="mtbl"></tbody>
+    </table>
+  </div>
+
+  <!-- ===== ルート別（タブ切替） ===== -->
+  <div class="sec">ルート別実績</div>
+  <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+    <button class="tab on" onclick="setRouteTab('cum',this)">累計（10月〜3月）</button>
+    <button class="tab" onclick="setRouteTab('fy',this)">今期（12月〜3月）</button>
+    <button class="tab" onclick="setRouteTab('q1',this)">1Q（12月〜2月）</button>
+    <button class="tab" onclick="setRouteTab('month',this)">今月（3月）</button>
+    <button class="tab" onclick="setRouteTab('quarter',this)">今四半期（2Q：3月〜）</button>
+  </div>
+  <div class="tbl-card" id="route-tbl-wrap">
+    <div id="route-note" style="font-size:10px;color:#9ca3af;margin-bottom:8px;"></div>
+    <table>
+      <thead>
+        <tr>
+          <th style="text-align:left;padding-left:12px;min-width:90px;">カテゴリ</th>
+          <th style="text-align:left;padding-left:8px;min-width:150px;">ルート</th>
+          <th class="th-g">LINE</th>
+          <th class="th-g">面談実施</th>
+          <th class="th-g">Uセット</th>
+          <th class="th-g">決定</th>
+          <th style="background:#5b21b6;">LINE→面談</th>
+          <th style="background:#5b21b6;">面談→セット</th>
+          <th style="background:#5b21b6;">セット→決定</th>
+          <th style="background:#dc2626;">面談→決定</th>
+          <th style="background:#dc2626;">LINE→決定</th>
+          <th style="background:#b45309;">広告費</th>
+          <th style="background:#b45309;">面談CPA</th>
+          <th style="background:#b45309;">セットCPA</th>
+          <th style="background:#b45309;">決定CPA</th>
+        </tr>
+      </thead>
+      <tbody id="route-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- ===== 考察 ===== -->
+  <div class="sec">マーケ考察・インサイト（2026年3月時点）</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+
+    <div style="background:white;border-radius:12px;padding:20px;box-shadow:0 1px 6px rgba(0,0,0,.07);border-left:5px solid #46A7E1;">
+      <div style="font-size:12px;font-weight:800;color:#1e3a5f;margin-bottom:10px;">📊 全体サマリー</div>
+      <p style="font-size:12px;color:#374151;line-height:1.7;margin:0 0 8px;">累計LINE登録<strong>2,191名</strong>に対し決定<strong>18名</strong>（LINE→決定率 <strong>0.8%</strong>）。</p>
+      <p style="font-size:12px;color:#374151;line-height:1.7;margin:0 0 8px;"><strong style="color:#46A7E1;">LINE→PD率 74%</strong>は目標60%を超過しており、集客後のPDアップ対応は高水準。</p>
+      <p style="font-size:12px;color:#374151;line-height:1.7;margin:0;"><strong style="color:#dc2626;">PD→面談予約率 13%</strong>が最大ボトルネック（目標25%）。PDアップ後のフォロー・CRM施策強化が急務。</p>
+    </div>
+
+    <div style="background:white;border-radius:12px;padding:20px;box-shadow:0 1px 6px rgba(0,0,0,.07);border-left:5px solid #F28708;">
+      <div style="font-size:12px;font-weight:800;color:#1e3a5f;margin-bottom:10px;">🏆 ルート別強み</div>
+      <p style="font-size:12px;color:#374151;line-height:1.7;margin:0 0 8px;"><strong>学生協賛</strong>（706名）: ボリューム最大。面談34名・セット11名と安定した質。</p>
+      <p style="font-size:12px;color:#374151;line-height:1.7;margin:0 0 8px;"><strong>Meta LP（学生向けLP各種）</strong>: 累計632名登録・面談57名。LINE→面談率9〜10%と高水準。</p>
+      <p style="font-size:12px;color:#374151;line-height:1.7;margin:0;"><strong>自然流入（詳細ページ）</strong>: 10名登録で面談4名（40%）と最高変換率。コンテンツSEO強化余地あり。</p>
+    </div>
+
+    <div style="background:white;border-radius:12px;padding:20px;box-shadow:0 1px 6px rgba(0,0,0,.07);border-left:5px solid #7c3aed;">
+      <div style="font-size:12px;font-weight:800;color:#1e3a5f;margin-bottom:10px;">📅 今月の動き（3月）</div>
+      <p style="font-size:12px;color:#374151;line-height:1.7;margin:0 0 8px;">Meta広告経由のLINE登録が急増（MV: 93名 / フッター: 78名 / 選ばれる理由: 44名）。</p>
+      <p style="font-size:12px;color:#374151;line-height:1.7;margin:0 0 8px;">リスティング広告を新規開始（13名）。今後のPD→面談ファネル追跡が重要。</p>
+      <p style="font-size:12px;color:#374151;line-height:1.7;margin:0;">3月決定数は現時点0名（期中）。4月以降のセット転換が焦点。</p>
+    </div>
+
+    <div style="background:white;border-radius:12px;padding:20px;box-shadow:0 1px 6px rgba(0,0,0,.07);border-left:5px solid #059669;">
+      <div style="font-size:12px;font-weight:800;color:#1e3a5f;margin-bottom:10px;">🎯 次のアクション優先度</div>
+      <p style="font-size:12px;color:#374151;line-height:1.7;margin:0 0 6px;">① <strong style="color:#dc2626;">【最優先】PD→面談予約率改善</strong>：PDアップ後の個別フォロー・リマインドを強化（目標25%、現状12%）</p>
+      <p style="font-size:12px;color:#374151;line-height:1.7;margin:0 0 6px;">② <strong>面談→応募意思率向上</strong>：面談品質とフォローアップで65%目標へ（現状48%）</p>
+      <p style="font-size:12px;color:#374151;line-height:1.7;margin:0;">③ <strong>リスティング効果検証</strong>：PD・面談データをスプレッドシートに連携し、ROI測定を開始</p>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="footer">"はたらく"に、青春を。 ｜ 株式会社WorCry ｜ AOHARUインターン マーケ数値ダッシュボード ｜ データソース: 学生管理シート（マーケ数値タブ）</div>
+
+<script>
+// ============================
+// データ（マーケ数値シートより）
+// ============================
+const monthData = [
+  {m:'9月', line:4, pd:1, yoyaku:0, jissi:0, obo:0, set:0, ketei:0},
+  {m:'10月', line:757, pd:682, yoyaku:13, jissi:5, obo:0, set:1, ketei:1},
+  {m:'11月', line:206, pd:161, yoyaku:25, jissi:19, obo:0, set:4, ketei:3},
+  {m:'12月', line:157, pd:100, yoyaku:39, jissi:24, obo:0, set:4, ketei:4},
+  {m:'1月', line:166, pd:104, yoyaku:30, jissi:23, obo:0, set:5, ketei:4},
+  {m:'2月', line:273, pd:182, yoyaku:38, jissi:24, obo:0, set:6, ketei:4},
+  {m:'3月', line:568, pd:348, yoyaku:64, jissi:45, obo:0, set:9, ketei:2},
+  {m:'4月', line:187, pd:132, yoyaku:25, jissi:12, obo:0, set:0, ketei:0}
+];
+
+const cumTotal = {line:2318, pd:1710, yoyaku:234, jissi:152, obo:0, set:29, ketei:18};
+
+const targets = {lpd:60, pdy:25, yj:70, jo:65, os:90, sk:35};
+
+const funnelColors = ['#2d6a9f','#46A7E1','#F28708','#f09a30','#8b5cf6','#34b97b','#059669'];
+
+function bgCheck(rate, tgt) {
+  return rate >= tgt
+    ? 'background:#dcfce7;color:#15803d;'
+    : 'background:#fee2e2;color:#dc2626;';
+}
+
+// ============================
+// ファネル
+// ============================
+function getMonthFunnel(key) {
+  const all = monthData.reduce((a,d)=>({
+    line:a.line+d.line, pd:a.pd+d.pd, yoyaku:a.yoyaku+d.yoyaku,
+    jissi:a.jissi+d.jissi, obo:a.obo+d.obo, set:a.set+d.set, ketei:a.ketei+d.ketei
+  }), {line:0,pd:0,yoyaku:0,jissi:0,obo:0,set:0,ketei:0});
+  const map = {
+    all: all,
+    m10: monthData[1], m11: monthData[2], m12: monthData[3],
+    m1:  monthData[4], m2:  monthData[5], m3:  monthData[6]
+  };
+  return map[key];
+}
+
+function renderFunnel(key) {
+  const d = getMonthFunnel(key);
+  const steps = [
+    {lbl:'LINE登録', val:d.line, unit:'名'},
+    {lbl:'PD', val:d.pd, unit:'名'},
+    {lbl:'面談予約', val:d.yoyaku, unit:'名'},
+    {lbl:'面談実施', val:d.jissi, unit:'名'},
+    {lbl:'応募意思', val:d.obo, unit:'名'},
+    {lbl:'Uセット', val:d.set, unit:'名'},
+    {lbl:'決定', val:d.ketei, unit:'名'},
+  ];
+  const rates = [
+    {r: d.line   ? Math.round(d.pd/d.line*100)      : 0, tgt:targets.lpd, lbl:'目標60%'},
+    {r: d.pd     ? Math.round(d.yoyaku/d.pd*100)    : 0, tgt:targets.pdy, lbl:'目標25%'},
+    {r: d.yoyaku ? Math.round(d.jissi/d.yoyaku*100) : 0, tgt:targets.yj,  lbl:'目標70%'},
+    {r: d.jissi  ? Math.round(d.obo/d.jissi*100)    : 0, tgt:targets.jo,  lbl:'目標65%'},
+    {r: d.obo    ? Math.round(d.set/d.obo*100)      : 0, tgt:targets.os,  lbl:'目標90%'},
+    {r: d.set    ? Math.round(d.ketei/d.set*100)    : 0, tgt:targets.sk,  lbl:'目標35%'},
+  ];
+
+  let html = '';
+  steps.forEach((s, i) => {
+    html += `
+      <div class="fstep">
+        <div class="fbox" style="background:${funnelColors[i]}">
+          <div class="fbox-lbl">${s.lbl}</div>
+          <div class="fbox-val">${s.val.toLocaleString()}</div>
+          <div class="fbox-unit">${s.unit}</div>
+        </div>
+      </div>`;
+    if (i < rates.length) {
+      const rt = rates[i];
+      const st = bgCheck(rt.r, rt.tgt);
+      html += `
+        <div class="farrow">
+          <div class="farrow-rate" style="${st}">${rt.r}%</div>
+          <div class="farrow-icon">→</div>
+          <div class="farrow-tgt">${rt.lbl}</div>
+        </div>`;
+    }
+  });
+
+  document.getElementById('funnel').innerHTML = html;
+  const nameMap = {
+    all:'10月〜3月合計',
+    m10:'2025年10月', m11:'2025年11月', m12:'2025年12月',
+    m1:'2026年1月',   m2:'2026年2月',   m3:'2026年3月'
+  };
+  document.getElementById('funnel-title').textContent = `📊 ${nameMap[key]}`;
+}
+
+function setTab(key, el) {
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  renderFunnel(key);
+}
+
+// ============================
+// 月別サマリーテーブル
+// ============================
+function renderMonthTable() {
+  let html = '';
+  monthData.forEach(d => {
+    const lpd = d.line   ? Math.round(d.pd/d.line*100)      : 0;
+    const pdy = d.pd     ? Math.round(d.yoyaku/d.pd*100)    : 0;
+    const yj  = d.yoyaku ? Math.round(d.jissi/d.yoyaku*100) : 0;
+    const jo  = d.jissi  ? Math.round(d.obo/d.jissi*100)    : 0;
+    const os  = d.obo    ? Math.round(d.set/d.obo*100)      : 0;
+    const sk  = d.set    ? Math.round(d.ketei/d.set*100)    : 0;
+    html += `<tr>
+      <td class="lbl">${d.m}</td>
+      <td>${d.line.toLocaleString()}</td>
+      <td>${d.pd.toLocaleString()}</td>
+      <td>${d.yoyaku}</td>
+      <td>${d.jissi}</td>
+      <td>${d.obo}</td>
+      <td>${d.set}</td>
+      <td>${d.ketei}</td>
+      <td class="${lpd>=60?'ok':'ng'}">${lpd}%</td>
+      <td class="${pdy>=25?'ok':'ng'}">${pdy}%</td>
+      <td class="${yj>=70?'ok':'ng'}">${yj}%</td>
+      <td class="${jo>=65?'ok':'ng'}">${jo}%</td>
+      <td class="${os>=90?'ok':'ng'}">${os}%</td>
+      <td class="${sk>=35?'ok':'ng'}">${sk}%</td>
+    </tr>`;
+  });
+  // 累計行
+  const l=cumTotal;
+  const lpd=Math.round(l.pd/l.line*100);
+  const pdy=Math.round(l.yoyaku/l.pd*100);
+  const yj =Math.round(l.jissi/l.yoyaku*100);
+  const jo =Math.round(l.obo/l.jissi*100);
+  const os =Math.round(l.set/l.obo*100);
+  const sk =Math.round(l.ketei/l.set*100);
+  html += `<tr class="ttl">
+    <td class="lbl">累計（10月〜3月）</td>
+    <td>${l.line.toLocaleString()}</td>
+    <td>${l.pd.toLocaleString()}</td>
+    <td>${l.yoyaku}</td>
+    <td>${l.jissi}</td>
+    <td>${l.obo}</td>
+    <td>${l.set}</td>
+    <td>${l.ketei}</td>
+    <td class="${lpd>=60?'ok':'ng'}">${lpd}%</td>
+    <td class="${pdy>=25?'ok':'ng'}">${pdy}%</td>
+    <td class="${yj>=70?'ok':'ng'}">${yj}%</td>
+    <td class="${jo>=65?'ok':'ng'}">${jo}%</td>
+    <td class="${os>=90?'ok':'ng'}">${os}%</td>
+    <td class="${sk>=35?'ok':'ng'}">${sk}%</td>
+  </tr>`;
+  document.getElementById('mtbl').innerHTML = html;
+}
+
+// ============================
+// チャート
+// ============================
+let c1=null, c2=null;
+function renderCharts() {
+  const lbl = monthData.map(d=>d.m);
+  const colors = ['#2d6a9f','#2d6a9f','#46A7E1','#46A7E1','#F28708','#f09a30'];
+
+  if(c1) c1.destroy();
+  c1 = new Chart(document.getElementById('ch1'), {
+    type: 'bar',
+    data: {
+      labels: lbl,
+      datasets: [
+        {label:'LINE登録', data:monthData.map(d=>d.line),   backgroundColor:'rgba(70,167,225,0.75)',  borderRadius:3, yAxisID:'y'},
+        {label:'PD',       data:monthData.map(d=>d.pd),     backgroundColor:'rgba(45,106,159,0.75)',  borderRadius:3, yAxisID:'y'},
+        {label:'面談予約', data:monthData.map(d=>d.yoyaku), backgroundColor:'rgba(242,135,8,0.65)',   borderRadius:3, yAxisID:'y1'},
+        {label:'面談実施', data:monthData.map(d=>d.jissi),  backgroundColor:'rgba(52,185,123,0.85)',  borderRadius:3, yAxisID:'y1'},
+        {label:'Uセット',  data:monthData.map(d=>d.set),    backgroundColor:'rgba(139,92,246,0.85)',  borderRadius:3, yAxisID:'y1'},
+        {label:'決定',     data:monthData.map(d=>d.ketei),  backgroundColor:'rgba(5,150,105,0.85)',   borderRadius:3, yAxisID:'y1'},
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'top', labels:{font:{size:10},boxWidth:10,padding:8}}},
+      scales:{
+        x:{ticks:{font:{size:10}},grid:{display:false}},
+        y:{
+          type:'linear', position:'left',
+          ticks:{font:{size:10}}, grid:{color:'#f3f4f6'}, beginAtZero:true,
+          title:{display:true, text:'LINE / PD（名）', font:{size:9}, color:'#6b7280'}
+        },
+        y1:{
+          type:'linear', position:'right',
+          ticks:{font:{size:10}}, grid:{drawOnChartArea:false}, beginAtZero:true,
+          title:{display:true, text:'面談予約 / 面談実施 / セット / 決定（名）', font:{size:9}, color:'#059669'}
+        }
+      }
+    }
+  });
+
+  if(c2) c2.destroy();
+  const lpd_data = monthData.map(d => d.line   ? Math.round(d.pd/d.line*100)      : 0);
+  const pdy_data = monthData.map(d => d.pd     ? Math.round(d.yoyaku/d.pd*100)    : 0);
+  const yj_data  = monthData.map(d => d.yoyaku ? Math.round(d.jissi/d.yoyaku*100) : 0);
+  const sk_data  = monthData.map(d => d.set    ? Math.round(d.ketei/d.set*100)    : 0);
+
+  c2 = new Chart(document.getElementById('ch2'), {
+    type: 'line',
+    data: {
+      labels: lbl,
+      datasets: [
+        {label:'LINE→PD率',   data:lpd_data, borderColor:'#46A7E1', backgroundColor:'rgba(70,167,225,0.06)',  tension:0.3, pointRadius:5, fill:true},
+        {label:'PD→予約率',   data:pdy_data, borderColor:'#F28708', backgroundColor:'rgba(242,135,8,0.06)',   tension:0.3, pointRadius:5, fill:false},
+        {label:'予約→実施率', data:yj_data,  borderColor:'#8b5cf6', backgroundColor:'rgba(139,92,246,0.06)',  tension:0.3, pointRadius:5, fill:false},
+        {label:'セット→決定', data:sk_data,  borderColor:'#059669', backgroundColor:'rgba(5,150,105,0.06)',   tension:0.3, pointRadius:5, fill:false},
+        {label:'LINE→PD目標60%', data:lbl.map(()=>60), borderColor:'#46A7E1', borderDash:[4,4], pointRadius:0, borderWidth:1.5, fill:false},
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'top', labels:{font:{size:10},boxWidth:10,padding:8}}},
+      scales:{
+        x:{ticks:{font:{size:10}},grid:{display:false}},
+        y:{ticks:{font:{size:10},callback:v=>v+'%'},grid:{color:'#f3f4f6'},min:0,max:110}
+      }
+    }
+  });
+}
+
+// ============================
+// ルート別データ
+// ============================
+const catColors = {
+  '協賛系':   '#1e3a5f',
+  'Meta':     '#1d4ed8',
+  'Web広告':  '#7c3aed',
+  'アライアンス': '#0891b2',
+  'リアル':   '#b45309',
+  '自然流入': '#15803d',
+  'リスティング': '#dc2626',
+};
+
+// ============================
+// 固定単価マスタ（¥/件）
+// line=LINE登録単価, mendan=面談単価, kettei=決定単価
+// ============================
+const FIXED_COSTS = {
+  '学生協賛':           { line: 500, mendan: 5000, kettei: 0 },
+  'サークル協賛':       { line: 500, mendan: 5000, kettei: 0 },
+  'ペンマーク':         { line: 0, mendan: 8000, kettei: 0 },
+  'ペンマーク（wework用）': { line: 0, mendan: 8000, kettei: 0 },
+  'ガクシー':           { line: 0, mendan: 5000, kettei: 20000 },
+  'ガクシー（wework用）': { line: 0, mendan: 5000, kettei: 20000 },
+};
+
+// Meta広告費（GAS API取得値・月別、円）
+const META_AD_SPEND = {
+  cum:     { '10月':0, '11月':63000, '12月':243557, '1月':305000, '2月':410000, '3月':280000 },
+  month:   280000,   // 3月分
+  quarter: 280000,   // 今四半期（3月〜）
+  fy:      1238557,  // 今期（12月〜3月）: 243557+305000+410000+280000
+  q1:      958557,   // 1Q（12月〜2月）: 243557+305000+410000
+};
+// Meta広告費 合計（累計）
+const META_COST_CUM = Object.values(META_AD_SPEND.cum).reduce((a,b)=>a+b, 0);
+
+// コスト自動計算関数
+function calcRouteCost(route, line, jissi, ketei) {
+  const fc = FIXED_COSTS[route];
+  if (fc) return fc.line * line + fc.mendan * jissi + fc.kettei * ketei;
+  return 0; // リアル・自然流入・リスティングは0（無料）
+}
+
+// Meta広告費をLINE登録数で按分する関数
+function distributeMetaCost(routes, totalCost) {
+  const metaRoutes = routes.filter(r => r.cat === 'Meta');
+  const totalLine = metaRoutes.reduce((s, r) => s + r.line, 0);
+  metaRoutes.forEach(r => {
+    r.cost = totalLine > 0 ? Math.round(totalCost * r.line / totalLine) : 0;
+  });
+}
+
+const routeData = {
+  cum: [
+    {cat:'協賛系', route:'学生協賛', line:718, jissi:40, set:7, ketei:5},
+    {cat:'協賛系', route:'サークル協賛', line:278, jissi:1, set:0, ketei:0},
+    {cat:'Meta', route:'学生向けLP_フッター', line:358, jissi:34, set:4, ketei:2},
+    {cat:'Meta', route:'学生向けLP_MV', line:311, jissi:29, set:6, ketei:2},
+    {cat:'Meta', route:'学生向けLP_選ばれる理由', line:221, jissi:19, set:4, ketei:4},
+    {cat:'Meta', route:'Instagram広告', line:1, jissi:0, set:0, ketei:0},
+    {cat:'Web広告', route:'ペンマーク', line:61, jissi:3, set:0, ketei:0},
+    {cat:'Web広告', route:'ペンマーク（wework用）', line:2, jissi:0, set:0, ketei:0},
+    {cat:'アライアンス', route:'ガクシー（wework用）', line:6, jissi:0, set:0, ketei:0},
+    {cat:'アライアンス', route:'ガクシー', line:4, jissi:0, set:1, ketei:1},
+    {cat:'リアル', route:'学生イベント出展_チラシ', line:173, jissi:8, set:2, ketei:0},
+    {cat:'リアル', route:'Ref_長谷川', line:8, jissi:0, set:0, ketei:0},
+    {cat:'リアル', route:'紹介', line:4, jissi:0, set:1, ketei:1},
+    {cat:'自然流入', route:'HP', line:29, jissi:3, set:0, ketei:0},
+    {cat:'自然流入', route:'AOHARUインターン_FV', line:12, jissi:4, set:2, ketei:2},
+    {cat:'自然流入', route:'AOHARUインターン_詳細ページ', line:11, jissi:4, set:1, ketei:1},
+    {cat:'リスティング', route:'リスティングLP_MV', line:72, jissi:4, set:1, ketei:0},
+    {cat:'リスティング', route:'リスティングLP_選ばれる理由', line:25, jissi:2, set:0, ketei:0},
+    {cat:'リスティング', route:'リスティングLP_フッター', line:13, jissi:1, set:0, ketei:0}
+  ],
+  month: [
+    {cat:'協賛系', route:'学生協賛', line:5, jissi:2, set:0, ketei:0},
+    {cat:'Meta', route:'学生向けLP_選ばれる理由', line:51, jissi:3, set:0, ketei:0},
+    {cat:'Meta', route:'学生向けLP_フッター', line:33, jissi:2, set:0, ketei:0},
+    {cat:'Meta', route:'学生向けLP_MV', line:26, jissi:0, set:0, ketei:0},
+    {cat:'リアル', route:'学生イベント出展_チラシ', line:4, jissi:1, set:0, ketei:0},
+    {cat:'自然流入', route:'HP', line:3, jissi:0, set:0, ketei:0},
+    {cat:'自然流入', route:'AOHARUインターン_FV', line:1, jissi:1, set:0, ketei:0},
+    {cat:'自然流入', route:'AOHARUインターン_詳細ページ', line:1, jissi:0, set:0, ketei:0},
+    {cat:'リスティング', route:'リスティングLP_MV', line:44, jissi:2, set:0, ketei:0},
+    {cat:'リスティング', route:'リスティングLP_選ばれる理由', line:15, jissi:0, set:0, ketei:0},
+    {cat:'リスティング', route:'リスティングLP_フッター', line:3, jissi:1, set:0, ketei:0}
+  ],
+  quarter: [
+    {cat:'協賛系', route:'学生協賛', line:5, jissi:2, set:0, ketei:0},
+    {cat:'Meta', route:'学生向けLP_選ばれる理由', line:51, jissi:3, set:0, ketei:0},
+    {cat:'Meta', route:'学生向けLP_フッター', line:33, jissi:2, set:0, ketei:0},
+    {cat:'Meta', route:'学生向けLP_MV', line:26, jissi:0, set:0, ketei:0},
+    {cat:'リアル', route:'学生イベント出展_チラシ', line:4, jissi:1, set:0, ketei:0},
+    {cat:'自然流入', route:'HP', line:3, jissi:0, set:0, ketei:0},
+    {cat:'自然流入', route:'AOHARUインターン_FV', line:1, jissi:1, set:0, ketei:0},
+    {cat:'自然流入', route:'AOHARUインターン_詳細ページ', line:1, jissi:0, set:0, ketei:0},
+    {cat:'リスティング', route:'リスティングLP_MV', line:44, jissi:2, set:0, ketei:0},
+    {cat:'リスティング', route:'リスティングLP_選ばれる理由', line:15, jissi:0, set:0, ketei:0},
+    {cat:'リスティング', route:'リスティングLP_フッター', line:3, jissi:1, set:0, ketei:0}
+  ]
+};
+
+// === 今期（fy）・1Q の動的計算 ===
+// fy: cum と同じルートデータ（META広告費は12月〜3月分のみで再配分）
+routeData.fy = routeData.cum.map(r => ({...r, cost:0}));
+// q1: cum - month（3月分を引く）
+(function(){
+  const mMap = {};
+  routeData.month.forEach(r => { mMap[r.route] = r; });
+  routeData.q1 = routeData.cum.map(r => {
+    const m = mMap[r.route] || {line:0, jissi:0, set:0, ketei:0};
+    return {
+      cat: r.cat, route: r.route,
+      line:  Math.max(0, r.line  - m.line),
+      jissi: Math.max(0, r.jissi - m.jissi),
+      set:   Math.max(0, r.set   - m.set),
+      ketei: Math.max(0, r.ketei - m.ketei),
+      cost: 0
+    };
+  }).filter(r => r.line > 0 || r.jissi > 0 || r.set > 0 || r.ketei > 0);
+})();
+
+// === コスト自動計算を実行 ===
+// 固定単価ルートのコスト計算
+['cum','month','quarter','fy','q1'].forEach(key => {
+  routeData[key].forEach(r => {
+    r.cost = calcRouteCost(r.route, r.line, r.jissi, r.ketei);
+  });
+});
+// Meta広告費をLINE数按分で配分
+distributeMetaCost(routeData.cum, META_COST_CUM);
+distributeMetaCost(routeData.month, META_AD_SPEND.month);
+distributeMetaCost(routeData.quarter, META_AD_SPEND.quarter);
+distributeMetaCost(routeData.fy, META_AD_SPEND.fy);
+distributeMetaCost(routeData.q1, META_AD_SPEND.q1);
+
+function renderRouteTable(key) {
+  const data = routeData[key];
+  const noteMap = {
+    cum:     '累計（2025年10月〜2026年3月）',
+    fy:      '今期（2025年12月〜2026年3月）',
+    q1:      '1Q（2025年12月〜2026年2月）',
+    month:   '今月（2026年3月）',
+    quarter: '今四半期（2Q：2026年3月〜 ※期中）',
+  };
+  document.getElementById('route-note').textContent = '表示期間：' + noteMap[key];
+
+  // Group by category
+  const cats = [];
+  const catMap = {};
+  data.forEach(r => {
+    if (!catMap[r.cat]) { catMap[r.cat] = []; cats.push(r.cat); }
+    catMap[r.cat].push(r);
+  });
+
+  let html = '';
+  cats.forEach(cat => {
+    const rows = catMap[cat];
+    const c = catColors[cat] || '#46A7E1';
+    // Category subtotal
+    const tot = rows.reduce((a,r)=>({
+      line: a.line+r.line, jissi: a.jissi+r.jissi, set: a.set+r.set, ketei: a.ketei+r.ketei, cost: a.cost+(r.cost||0)
+    }), {line:0, jissi:0, set:0, ketei:0, cost:0});
+
+    rows.forEach((r, i) => {
+      const lj = r.line ? Math.round(r.jissi/r.line*100) : null;
+      const js = r.jissi ? Math.round(r.set/r.jissi*100) : null;
+      const sk = r.set ? Math.round(r.ketei/r.set*100) : null;
+      const ljStr = lj===null ? '<span class="na">—</span>' : `<span class="${lj>=11?'ok':'ng'}">${lj}%</span>`;
+      const jsStr = js===null ? '<span class="na">—</span>' : `<span class="${js>=59?'ok':'ng'}">${js}%</span>`;
+      const skStr = sk===null ? '<span class="na">—</span>' : `<span class="${sk>=50?'ok':'ng'}">${sk}%</span>`;
+      const jk = r.jissi ? Math.round(r.ketei/r.jissi*100) : null;
+      const lk = r.line ? Math.round(r.ketei/r.line*100) : null;
+      const jkStr = jk===null ? '<span class="na">—</span>' : `<span style="color:${jk>=20?'#15803d':'#dc2626'};font-weight:700;">${jk}%</span>`;
+      const lkStr = lk===null ? '<span class="na">—</span>' : `<span style="color:${lk>=2?'#15803d':'#dc2626'};font-weight:700;">${lk}%</span>`;
+      const hasCost = r.cost && r.cost > 0;
+      const costStr = hasCost ? '¥'+r.cost.toLocaleString() : '<span class="na">—</span>';
+      const cpaMendan = hasCost && r.jissi > 0 ? '¥'+Math.round(r.cost/r.jissi).toLocaleString() : '<span class="na">—</span>';
+      const cpaSet = hasCost && r.set > 0 ? '¥'+Math.round(r.cost/r.set).toLocaleString() : '<span class="na">—</span>';
+      const cpaKetei = hasCost && r.ketei > 0 ? '¥'+Math.round(r.cost/r.ketei).toLocaleString() : '<span class="na">—</span>';
+      html += `<tr>`;
+      if (i === 0) {
+        html += `<td class="lbl" rowspan="${rows.length}" style="background:${c}15;border-left:4px solid ${c};color:${c};font-weight:700;font-size:11px;vertical-align:middle;">${cat}</td>`;
+      }
+      html += `<td class="lbl" style="padding-left:10px;">${r.route}</td>
+        <td style="font-weight:${r.line>0?'700':'400'};color:${r.line>0?'#1e3a5f':'#9ca3af'};">${r.line > 0 ? r.line.toLocaleString() : '—'}</td>
+        <td>${r.jissi > 0 ? r.jissi : '<span class="na">—</span>'}</td>
+        <td>${r.set > 0 ? r.set : '<span class="na">—</span>'}</td>
+        <td>${r.ketei > 0 ? r.ketei : '<span class="na">—</span>'}</td>
+        <td>${ljStr}</td>
+        <td>${jsStr}</td>
+        <td>${skStr}</td>
+        <td>${jkStr}</td>
+        <td>${lkStr}</td>
+        <td style="color:${hasCost?'#b45309':'#d1d5db'};font-weight:${hasCost?'700':'400'};">${costStr}</td>
+        <td style="color:${hasCost && r.jissi>0?'#b45309':'#d1d5db'};">${cpaMendan}</td>
+        <td style="color:${hasCost && r.set>0?'#b45309':'#d1d5db'};">${cpaSet}</td>
+        <td style="color:${hasCost && r.ketei>0?'#b45309':'#d1d5db'};">${cpaKetei}</td>
+      </tr>`;
+    });
+    // Subtotal row
+    const tlj = tot.line ? Math.round(tot.jissi/tot.line*100) : null;
+    const tjs = tot.jissi ? Math.round(tot.set/tot.jissi*100) : null;
+    const tsk = tot.set ? Math.round(tot.ketei/tot.set*100) : null;
+    const tjk = tot.jissi ? Math.round(tot.ketei/tot.jissi*100) : null;
+    const tlk = tot.line ? Math.round(tot.ketei/tot.line*100) : null;
+    const tHasCost = tot.cost > 0;
+    const tCostStr = tHasCost ? '¥'+tot.cost.toLocaleString() : '—';
+    const tCpaMendan = tHasCost && tot.jissi > 0 ? '¥'+Math.round(tot.cost/tot.jissi).toLocaleString() : '—';
+    const tCpaSet = tHasCost && tot.set > 0 ? '¥'+Math.round(tot.cost/tot.set).toLocaleString() : '—';
+    const tCpaKetei = tHasCost && tot.ketei > 0 ? '¥'+Math.round(tot.cost/tot.ketei).toLocaleString() : '—';
+    html += `<tr style="background:${c}10;border-top:1px solid ${c}30;">
+      <td colspan="2" class="lbl" style="color:${c};font-weight:700;font-size:10px;padding-left:12px;">▶ ${cat} 小計</td>
+      <td style="font-weight:700;color:${c};">${tot.line.toLocaleString()}</td>
+      <td style="font-weight:700;color:${c};">${tot.jissi > 0 ? tot.jissi : '—'}</td>
+      <td style="font-weight:700;color:${c};">${tot.set > 0 ? tot.set : '—'}</td>
+      <td style="font-weight:700;color:${c};">${tot.ketei > 0 ? tot.ketei : '—'}</td>
+      <td style="font-weight:700;color:${c};">${tlj!==null ? tlj+'%' : '—'}</td>
+      <td style="font-weight:700;color:${c};">${tjs!==null ? tjs+'%' : '—'}</td>
+      <td style="font-weight:700;color:${c};">${tsk!==null ? tsk+'%' : '—'}</td>
+      <td style="font-weight:700;color:${c};">${tjk!==null ? tjk+'%' : '—'}</td>
+      <td style="font-weight:700;color:${c};">${tlk!==null ? tlk+'%' : '—'}</td>
+      <td style="font-weight:700;color:${tHasCost?'#b45309':c};">${tCostStr}</td>
+      <td style="font-weight:700;color:${tHasCost?'#b45309':c};">${tCpaMendan}</td>
+      <td style="font-weight:700;color:${tHasCost?'#b45309':c};">${tCpaSet}</td>
+      <td style="font-weight:700;color:${tHasCost?'#b45309':c};">${tCpaKetei}</td>
+    </tr>`;
+  });
+
+  // Grand total
+  const gt = data.reduce((a,r)=>({line:a.line+r.line,jissi:a.jissi+r.jissi,set:a.set+r.set,ketei:a.ketei+r.ketei,cost:a.cost+(r.cost||0)}),{line:0,jissi:0,set:0,ketei:0,cost:0});
+  const gtlj = gt.line ? Math.round(gt.jissi/gt.line*100) : null;
+  const gtjs = gt.jissi ? Math.round(gt.set/gt.jissi*100) : null;
+  const gtsk = gt.set ? Math.round(gt.ketei/gt.set*100) : null;
+  const gtjk = gt.jissi ? Math.round(gt.ketei/gt.jissi*100) : null;
+  const gtlk = gt.line ? Math.round(gt.ketei/gt.line*100) : null;
+  const gtHasCost = gt.cost > 0;
+  html += `<tr class="ttl">
+    <td colspan="2" class="lbl">合計</td>
+    <td>${gt.line.toLocaleString()}</td>
+    <td>${gt.jissi}</td>
+    <td>${gt.set}</td>
+    <td>${gt.ketei}</td>
+    <td>${gtlj!==null ? gtlj+'%' : '—'}</td>
+    <td>${gtjs!==null ? gtjs+'%' : '—'}</td>
+    <td>${gtsk!==null ? gtsk+'%' : '—'}</td>
+    <td>${gtjk!==null ? gtjk+'%' : '—'}</td>
+    <td>${gtlk!==null ? gtlk+'%' : '—'}</td>
+    <td style="color:${gtHasCost?'#b45309':''};">${gtHasCost ? '¥'+gt.cost.toLocaleString() : '—'}</td>
+    <td style="color:${gtHasCost?'#b45309':''};">${gtHasCost && gt.jissi>0 ? '¥'+Math.round(gt.cost/gt.jissi).toLocaleString() : '—'}</td>
+    <td style="color:${gtHasCost?'#b45309':''};">${gtHasCost && gt.set>0 ? '¥'+Math.round(gt.cost/gt.set).toLocaleString() : '—'}</td>
+    <td style="color:${gtHasCost?'#b45309':''};">${gtHasCost && gt.ketei>0 ? '¥'+Math.round(gt.cost/gt.ketei).toLocaleString() : '—'}</td>
+  </tr>`;
+
+  document.getElementById('route-tbody').innerHTML = html;
+}
+
+function setRouteTab(key, el) {
+  document.querySelectorAll('#route-tbl-wrap').forEach(()=>{});
+  el.closest('div').querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  renderRouteTable(key);
+}
+
+// INIT
+renderFunnel('all');
+renderMonthTable();
+renderCharts();
+renderRouteTable('cum');
+</script>
+</body>
+</html>
