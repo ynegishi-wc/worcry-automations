@@ -91,14 +91,15 @@ jobs:
         run: |
           npm install -g netlify-cli
 
-          # AOHARUダッシュボード（週次ステップ率）をデプロイ
+          # AOHARUダッシュボード（週次ステップ率）をindex.htmlとしてデプロイ
+          mkdir -p /tmp/aoharu-deploy
+          cp public/dashboard_AOHARU_週次ステップ率.html /tmp/aoharu-deploy/index.html
           netlify deploy --prod \
-            --dir=public \
-            --filter dashboard_AOHARU_週次ステップ率.html \
+            --dir=/tmp/aoharu-deploy \
             --site=${{ secrets.NETLIFY_SITE_ID_AOHARU }} \
             --auth=${{ secrets.NETLIFY_TOKEN }}
 
-          # マーケ数値ダッシュボードをデプロイ（index.htmlとして）
+          # マーケ数値ダッシュボードをindex.htmlとしてデプロイ
           mkdir -p /tmp/marke-deploy
           cp public/dashboard_AOHARU_マーケ数値.html /tmp/marke-deploy/index.html
           netlify deploy --prod \
