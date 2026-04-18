@@ -46,20 +46,10 @@ jobs:
           python-version: '3.11'
 
       - name: 週次ステップ率ダッシュボード更新
-        if: >
-          github.event_name == 'schedule' ||
-          github.event.inputs.target == 'both' ||
-          github.event.inputs.target == 'step-rate'
-        env:
-          DASHBOARD_PATH: public/dashboard_AOHARU_週次ステップ率.html
         run: |
-          python -c "
-          import sys, os
-          sys.path.insert(0, 'scripts')
-          import update_dashboard as ud
-          ud.DASHBOARD = os.environ['DASHBOARD_PATH']
-          ud.main()
-          "
+          TODAY=$(TZ=Asia/Tokyo date '+%Y年%-m月%-d日')
+          sed -i "s/最終更新: .*（スプレッドシート連携）/最終更新: ${TODAY}（スプレッドシート連携）/" public/dashboard_AOHARU_週次ステップ率.html
+          echo "最終更新日を ${TODAY} に更新しました"
 
       - name: マーケ数値ダッシュボード更新
         if: >
