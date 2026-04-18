@@ -39,6 +39,10 @@ jobs:
     steps:
       - name: チェックアウト
         uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Python セットアップ
         uses: actions/setup-python@v5
@@ -76,8 +80,7 @@ jobs:
           else
             git add public/
             git commit -m "chore: update dashboards ($(TZ=Asia/Tokyo date '+%Y-%m-%d')) [skip ci]"
-            git pull --rebase origin main
-            git push origin main
+            git push origin HEAD:main
           fi
 
       - name: Deploy to Netlify
