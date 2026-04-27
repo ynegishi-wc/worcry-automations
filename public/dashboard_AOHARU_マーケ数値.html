@@ -194,7 +194,7 @@
     </div>
   </div>
   <div class="header-right">
-    <span style="font-size:15px;font-weight:700;display:block;">最終更新: 2026年04月20日 07:28</span>
+    <span style="font-size:15px;font-weight:700;display:block;">最終更新: 2026年04月27日 07:58</span>
     <span style="font-size:10px;background:rgba(255,255,255,0.15);padding:2px 8px;border-radius:10px;margin-top:4px;display:inline-block;">データソース: マーケ数値シート</span>
   </div>
 </div>
@@ -566,12 +566,12 @@ const monthData = [
   {m:'11月', line:206, pd:161, yoyaku:25, jissi:19, obo:0, set:0, ketei:0},
   {m:'12月', line:157, pd:100, yoyaku:39, jissi:24, obo:0, set:0, ketei:0},
   {m:'1月', line:166, pd:104, yoyaku:30, jissi:24, obo:0, set:0, ketei:0},
-  {m:'2月', line:273, pd:182, yoyaku:38, jissi:25, obo:0, set:0, ketei:0},
-  {m:'3月', line:540, pd:335, yoyaku:66, jissi:47, obo:0, set:0, ketei:0},
-  {m:'4月', line:366, pd:236, yoyaku:55, jissi:23, obo:0, set:0, ketei:0}
+  {m:'2月', line:272, pd:181, yoyaku:38, jissi:25, obo:0, set:0, ketei:0},
+  {m:'3月', line:539, pd:334, yoyaku:66, jissi:48, obo:0, set:0, ketei:0},
+  {m:'4月', line:479, pd:306, yoyaku:74, jissi:36, obo:0, set:0, ketei:0}
 ];
 
-const cumTotal = {line:2469, pd:1801, yoyaku:267, jissi:168, obo:0, set:0, ketei:0};
+const cumTotal = {line:2580, pd:1869, yoyaku:286, jissi:182, obo:0, set:0, ketei:0};
 
 const targets = {lpd:60, pdy:25, yj:70, jo:65, os:90, sk:35};
 
@@ -837,11 +837,11 @@ function distributeMetaCost(routes, totalCost) {
 
 const routeData = {
   cum: [
-    {cat:'協賛系', route:'学生協賛', line:730, jissi:42, set:0, ketei:0},
+    {cat:'協賛系', route:'学生協賛', line:740, jissi:43, set:0, ketei:0},
     {cat:'協賛系', route:'サークル協賛', line:278, jissi:1, set:0, ketei:0},
-    {cat:'Meta', route:'学生向けLP_フッター', line:387, jissi:36, set:0, ketei:0},
-    {cat:'Meta', route:'学生向けLP_MV', line:325, jissi:31, set:0, ketei:0},
-    {cat:'Meta', route:'学生向けLP_選ばれる理由', line:260, jissi:25, set:0, ketei:0},
+    {cat:'Meta', route:'学生向けLP_フッター', line:406, jissi:36, set:0, ketei:0},
+    {cat:'Meta', route:'学生向けLP_MV', line:330, jissi:33, set:0, ketei:0},
+    {cat:'Meta', route:'学生向けLP_選ばれる理由', line:282, jissi:28, set:0, ketei:0},
     {cat:'Meta', route:'Instagram広告', line:1, jissi:0, set:0, ketei:0},
     {cat:'Web広告', route:'ペンマーク', line:61, jissi:4, set:0, ketei:0},
     {cat:'Web広告', route:'ペンマーク（wework用）', line:2, jissi:0, set:0, ketei:0},
@@ -850,38 +850,38 @@ const routeData = {
     {cat:'リアル', route:'学生イベント出展_チラシ', line:173, jissi:9, set:0, ketei:0},
     {cat:'リアル', route:'Ref_長谷川', line:8, jissi:0, set:0, ketei:0},
     {cat:'リアル', route:'紹介', line:4, jissi:0, set:0, ketei:0},
-    {cat:'自然流入', route:'HP', line:29, jissi:3, set:0, ketei:0},
-    {cat:'自然流入', route:'AOHARUインターン_FV', line:16, jissi:4, set:0, ketei:0},
-    {cat:'自然流入', route:'AOHARUインターン_詳細ページ', line:12, jissi:4, set:0, ketei:0},
-    {cat:'リスティング', route:'リスティングLP_MV', line:105, jissi:6, set:0, ketei:0},
-    {cat:'リスティング', route:'リスティングLP_選ばれる理由', line:36, jissi:2, set:0, ketei:0},
-    {cat:'リスティング', route:'リスティングLP_フッター', line:14, jissi:1, set:0, ketei:0}
+    {cat:'自然流入', route:'HP', line:32, jissi:3, set:0, ketei:0},
+    {cat:'自然流入', route:'AOHARUインターン_FV', line:18, jissi:4, set:0, ketei:0},
+    {cat:'自然流入', route:'AOHARUインターン_詳細ページ', line:13, jissi:4, set:0, ketei:0},
+    {cat:'リスティング', route:'リスティングLP_MV', line:135, jissi:10, set:0, ketei:0},
+    {cat:'リスティング', route:'リスティングLP_選ばれる理由', line:50, jissi:5, set:0, ketei:0},
+    {cat:'リスティング', route:'リスティングLP_フッター', line:18, jissi:1, set:0, ketei:0}
   ],
   month: [
-    {cat:'協賛系', route:'学生協賛', line:19, jissi:4, set:0, ketei:0},
-    {cat:'Meta', route:'学生向けLP_選ばれる理由', line:95, jissi:8, set:0, ketei:0},
-    {cat:'Meta', route:'学生向けLP_フッター', line:65, jissi:3, set:0, ketei:0},
-    {cat:'Meta', route:'学生向けLP_MV', line:43, jissi:1, set:0, ketei:0},
-    {cat:'リアル', route:'学生イベント出展_チラシ', line:6, jissi:1, set:0, ketei:0},
-    {cat:'自然流入', route:'AOHARUインターン_FV', line:5, jissi:1, set:0, ketei:0},
-    {cat:'自然流入', route:'HP', line:3, jissi:0, set:0, ketei:0},
-    {cat:'自然流入', route:'AOHARUインターン_詳細ページ', line:2, jissi:0, set:0, ketei:0},
-    {cat:'リスティング', route:'リスティングLP_MV', line:85, jissi:4, set:0, ketei:0},
-    {cat:'リスティング', route:'リスティングLP_選ばれる理由', line:29, jissi:0, set:0, ketei:0},
-    {cat:'リスティング', route:'リスティングLP_フッター', line:6, jissi:1, set:0, ketei:0}
+    {cat:'協賛系', route:'学生協賛', line:30, jissi:5, set:0, ketei:0},
+    {cat:'Meta', route:'学生向けLP_選ばれる理由', line:117, jissi:11, set:0, ketei:0},
+    {cat:'Meta', route:'学生向けLP_フッター', line:84, jissi:3, set:0, ketei:0},
+    {cat:'Meta', route:'学生向けLP_MV', line:48, jissi:2, set:0, ketei:0},
+    {cat:'リアル', route:'学生イベント出展_チラシ', line:7, jissi:1, set:0, ketei:0},
+    {cat:'自然流入', route:'AOHARUインターン_FV', line:7, jissi:1, set:0, ketei:0},
+    {cat:'自然流入', route:'HP', line:6, jissi:0, set:0, ketei:0},
+    {cat:'自然流入', route:'AOHARUインターン_詳細ページ', line:3, jissi:0, set:0, ketei:0},
+    {cat:'リスティング', route:'リスティングLP_MV', line:115, jissi:8, set:0, ketei:0},
+    {cat:'リスティング', route:'リスティングLP_選ばれる理由', line:43, jissi:3, set:0, ketei:0},
+    {cat:'リスティング', route:'リスティングLP_フッター', line:10, jissi:1, set:0, ketei:0}
   ],
   quarter: [
-    {cat:'協賛系', route:'学生協賛', line:19, jissi:4, set:0, ketei:0},
-    {cat:'Meta', route:'学生向けLP_選ばれる理由', line:95, jissi:8, set:0, ketei:0},
-    {cat:'Meta', route:'学生向けLP_フッター', line:65, jissi:3, set:0, ketei:0},
-    {cat:'Meta', route:'学生向けLP_MV', line:43, jissi:1, set:0, ketei:0},
-    {cat:'リアル', route:'学生イベント出展_チラシ', line:6, jissi:1, set:0, ketei:0},
-    {cat:'自然流入', route:'AOHARUインターン_FV', line:5, jissi:1, set:0, ketei:0},
-    {cat:'自然流入', route:'HP', line:3, jissi:0, set:0, ketei:0},
-    {cat:'自然流入', route:'AOHARUインターン_詳細ページ', line:2, jissi:0, set:0, ketei:0},
-    {cat:'リスティング', route:'リスティングLP_MV', line:85, jissi:4, set:0, ketei:0},
-    {cat:'リスティング', route:'リスティングLP_選ばれる理由', line:29, jissi:0, set:0, ketei:0},
-    {cat:'リスティング', route:'リスティングLP_フッター', line:6, jissi:1, set:0, ketei:0}
+    {cat:'協賛系', route:'学生協賛', line:30, jissi:5, set:0, ketei:0},
+    {cat:'Meta', route:'学生向けLP_選ばれる理由', line:117, jissi:11, set:0, ketei:0},
+    {cat:'Meta', route:'学生向けLP_フッター', line:84, jissi:3, set:0, ketei:0},
+    {cat:'Meta', route:'学生向けLP_MV', line:48, jissi:2, set:0, ketei:0},
+    {cat:'リアル', route:'学生イベント出展_チラシ', line:7, jissi:1, set:0, ketei:0},
+    {cat:'自然流入', route:'AOHARUインターン_FV', line:7, jissi:1, set:0, ketei:0},
+    {cat:'自然流入', route:'HP', line:6, jissi:0, set:0, ketei:0},
+    {cat:'自然流入', route:'AOHARUインターン_詳細ページ', line:3, jissi:0, set:0, ketei:0},
+    {cat:'リスティング', route:'リスティングLP_MV', line:115, jissi:8, set:0, ketei:0},
+    {cat:'リスティング', route:'リスティングLP_選ばれる理由', line:43, jissi:3, set:0, ketei:0},
+    {cat:'リスティング', route:'リスティングLP_フッター', line:10, jissi:1, set:0, ketei:0}
   ]
 };
 
